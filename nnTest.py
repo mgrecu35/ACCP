@@ -12,14 +12,7 @@ from keras.models import Model
 
 import pickle
 
-[X,Y,Xv,Yv]=pickle.load(open('deepL_Data.pklz','rb'))
-xm=X.mean(axis=0)
-xstd=X.std(axis=0)
-for i in range(8):
-    X[:,i]-=xm[i]
-    Xv[:,i]-=xm[i]
-    X[:,i]/=xstd[i]
-    Xv[:,i]/=xstd[i]
+
 
 def define_pmodel(cvar_dim, n_outputs=3, mc=True):
     input1= Input(shape=(cvar_dim,))
@@ -41,10 +34,22 @@ def generate_real_samples(X,Y,n):
     #print(nx,nc)
     ind=random.choice(nx,n)
     class_real=ones((n,1))
-    return X[ind,:]+randn(n,X.shape[1])/8.,Y[ind]+randn(n)/8.
+    return X[ind,:]+randn(n,X.shape[1])/8.,Y[ind,:]+randn(n,Y.shape[1])/8.
 
-cvar_dim=8
-p_model=define_pmodel(cvar_dim, n_outputs=1, mc=True)
+[X,Y,Xv,Yv]=pickle.load(open('deepL_Data.pklz','rb'))
+xm=X.mean(axis=0)
+xstd=X.std(axis=0)
+for i in range(18):
+    X[:,i]-=xm[i]
+    Xv[:,i]-=xm[i]
+    X[:,i]/=xstd[i]
+    Xv[:,i]/=xstd[i]
+X=X[:,:10]
+Xv=Xv[:,:10]
+cvar_dim=10
+Y=Y[:,4:6]
+Yv=Yv[:,4:6]
+p_model=define_pmodel(cvar_dim, n_outputs=2, mc=True)
 
 n_epochs=30000
 n_batch=128
@@ -60,4 +65,4 @@ for i in range(n_epochs):
     if i%n_eval==0:
         x_real, y_real = generate_real_samples(Xv,Yv,10*n_batch)
         yp=p_model.predict(x_real)
-        print(corrcoef(yp[:,0],y_real))
+        print(corrcoef(yp[:,-1],y_real[:,-1]))
