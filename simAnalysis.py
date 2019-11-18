@@ -1,13 +1,17 @@
 from netCDF4 import Dataset
 from numpy import *
 import matplotlib.pyplot as plt
-icase=2
+icase=4
 if icase==1:
     fname_in='wrfJune11_2014.Fields_G4ICE_17:48:00.nc'
 if icase==2:
     fname_in='wrfJune11_2014.Fields_G4ICE_19:00:00.nc'
 if icase==3:
     fname_in='wrfJune11_2014.Fields_G4ICE_18:24:00.nc'
+if icase==4:
+    fname_in='wrfJune12_2014.Fields_G4ICE_18:00:00.nc'
+if icase==5:
+    fname_in='wrfMay23_2014.Fields_G4ICE_21:36:00.nc'
     
 fh=Dataset(fname_in)
 
@@ -32,7 +36,7 @@ qr=fh['qr'][:,:,:]
 
 a=nonzero(pia2d[:,:,1]>10)
 
-
+#stop
 from numpy import *
 w=zeros((11,11),float)
 for i in range(11):
@@ -125,8 +129,10 @@ import pickle
 #pickle.dump(z3dms,open('z3dms_19:00.pklz','wb'))
 #z3dms=pickle.load(open('z3dms.pklz','rb'))
 #stop
-
+qNUBF=[]
 for i1,j1 in zip(a[0],a[1]):
+    if len(qNUBF)%100==0:
+        print("%i out of %i"%(len(qNUBF),len(a[0])))
     if i1>=5 and i1<nx-5 and j1>=5 and j1<ny-5:
         zku1d=zeros(100)-99
         zku1de=zeros(100)-99
@@ -166,10 +172,21 @@ for i1,j1 in zip(a[0],a[1]):
             piaW=-log10(sum(piaSum))*10.
             piaLKa.append(piaW)
             ind=nonzero((hm-1)*(hm-2.)<0)
+            n1=ind[0].shape[0]
+            i11=ind[0][int(n1/2)]
+            qnubf=[qr[i11,j1-5:j1+6,i1-5:i1+6][::2,::2]]
             qr1=mean([sum(qr[ik,j1-5:j1+6,i1-5:i1+6]*w)/wt for ik in ind[0]])
             ind=nonzero((hm-2)*(hm-3.)<0)
+            n1=ind[0].shape[0]
+            i11=ind[0][int(n1/2)]
+            qnubf.append(qr[i11,j1-5:j1+6,i1-5:i1+6][::2,::2])
             qr2=mean([sum(qr[ik,j1-5:j1+6,i1-5:i1+6]*w)/wt for ik in ind[0]])
             ind=nonzero((hm-3)*(hm-4.)<0)
+            n1=ind[0].shape[0]
+            i11=ind[0][int(n1/2)]
+            qnubf.append(qr[i11,j1-5:j1+6,i1-5:i1+6][::2,::2])
+            qNUBF.append(qnubf)
+            #stop
             qr3=mean([sum(qr[ik,j1-5:j1+6,i1-5:i1+6]*w)/wt for ik in ind[0]])
             qrL.append([qr1,qr2,qr3])
             zsfcL.append([zku1d[0],zka1d[0],zku1de[ind].mean(),zka1de[ind].mean()])
@@ -210,18 +227,23 @@ z1dkaHR_eff=array(z1dkaHR_eff)
 z1dkuHR_eff=array(z1dkuHR_eff)
 piaLKu=array(piaLKu)
 piaLKa=array(piaLKa)
+qNUBF=array(qNUBF)
 import pickle
 
 if icase==1:
-    fname_out='zProfsq0125_17:48.pklz'
+    fname_out='zProfsq0125_11June2014_17:48.pklz'
 if icase==2:
-    fname_out='zProfsq0125_19:00.pklz'
+    fname_out='zProfsq0125_11June2014_19:00.pklz'
 if icase==3:
-    fname_out='zProfsq0125_18:24.pklz'
-
+    fname_out='zProfsq0125_11June2014_18:24.pklz'
+if icase==4:
+    fname_out='zProfsq0125_12June2014_18:00.pklz'
+if icase==5:
+    fname_out='zProfsq0125_23May2014_21:36.pklz'
+    
 pickle.dump([z1dku_obs,z1dka_obs,z1dku_eff,z1dka_eff,z1dkuHR_obs,z1dkuHR_eff,\
              z1dkaHR_obs,z1dkaHR_eff,qrL,piaLKu,piaLKa,zsfcL,array(kextLKu),\
-             array(kextLKa),z1dka_ms_obs,windsL],open(fname_out,'wb'))
+             array(kextLKa),z1dka_ms_obs,windsL,qNUBF],open(fname_out,'wb'))
 stop
 import matplotlib
 matplotlib.rcParams.update({'font.size': 13})

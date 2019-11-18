@@ -10,6 +10,17 @@ if icase==2:
     fh=Dataset('wrfout_d04_2014-06-11_19_00_00')
 if icase==3:
     fh=Dataset('wrfout_d04_2014-06-11_18:24:00')
+if icase==4:
+    fh=Dataset('wrfout_d04_2014-06-12_18:00:00')
+if icase==5:
+    fh=Dataset('wrfout_d04_2014-05-23_21:36:00')
+
+qr=fh['QRAIN'][0,0,500:700,50:350]
+from numpy import log
+qrm=np.ma.array(qr,mask=qr<1e-6)
+#plt.pcolormesh(np.log10(qrm*1e3),vmin=-3,vmax=0,cmap='jet')
+
+#stop
 lonlat=np.loadtxt('lonlats.txt')
 
 
@@ -33,7 +44,18 @@ if icase==3:
     ny2=900
     nx1=35
     nx2=296
+    
+if icase==4:
+    ny1=500
+    ny2=900
+    nx1=400
+    nx2=600
 
+if icase==5:
+    ny1=500
+    ny2=700
+    nx1=50
+    nx2=350
 #ny1=0
 #ny2=300
 #nx1=850
@@ -53,14 +75,14 @@ from numpy import log10
 #qh*=0.
 nyX=0
 hm=0.5*(h[:-1,50,nyX]+h[1:,50,nyX])
-plt.subplot(411)
-plt.pcolormesh(np.arange(300),hm,qr[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
-plt.subplot(412)
-plt.pcolormesh(np.arange(300),hm,qh[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
-plt.subplot(413)
-plt.pcolormesh(np.arange(300),hm,qg[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
-plt.subplot(414)
-plt.pcolormesh(np.arange(300),hm,qs[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
+#plt.subplot(411)
+#plt.pcolormesh(np.arange(300),hm,qr[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
+#plt.subplot(412)
+#plt.pcolormesh(np.arange(300),hm,qh[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
+#plt.subplot(413)
+#plt.pcolormesh(np.arange(300),hm,qg[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
+#plt.subplot(414)
+#plt.pcolormesh(np.arange(300),hm,qs[:,0:300,nyX],norm=matplotlib.colors.LogNorm(),vmin=0.01e-3,vmax=6*1e-3,cmap='jet')
 
 w=fh['W'][0,:,ny1:ny2,nx1:nx2]
 wm=w[:,:,:]
@@ -97,15 +119,29 @@ ny2-=ny1
 ny1-=ny1
 nx2-=nx1
 nx1-=nx1
+from scipy.ndimage.filters import gaussian_filter
+fshape=qh.shape
+from numpy import random
+dnh=random.randn(fshape[0],fshape[1],fshape[2])
+dns=random.randn(fshape[0],fshape[1],fshape[2])
+dng=random.randn(fshape[0],fshape[1],fshape[2])
+dnr=random.randn(fshape[0],fshape[1],fshape[2])
 
+dnri=gaussian_filter(dnr,sigma=2)*5
+dngi=gaussian_filter(dns,sigma=2)*5
+dnsi=gaussian_filter(dng,sigma=2)*5
+dnhi=gaussian_filter(dnh,sigma=2)*5
+
+#stop
 
 
 from fields3D_WRF4ICE import *
 z3d,z3d_obs,kext3d,salb3d,asym3d,\
     v3d,dnr,dns,dng,\
     rainDBL,snowDBL,pia2d=radarFields_3d(nx1,nx2,ny1,ny2,qs,qg,\
-                                   qh,qr,qc,qv,T,prs,ncs,ncg,nch,ncr,\
-                                   rho,wm,h,dm_z,vt_R,vt_S,pyHB2,nz,freqs)
+                                         qh,qr,qc,qv,T,prs,ncs,ncg,nch,ncr,\
+                                         rho,wm,h,dm_z,vt_R,vt_S,pyHB2,nz,freqs,\
+                                         dnri,dnsi,dngi,dnhi)
 
 wmT=wm[:,ny1:ny2,nx1:nx2].T
 import xarray as xr
@@ -141,6 +177,10 @@ if icase==2:
     fname_out='wrfJune11_2014.Fields_G4ICE_19:00:00.nc'
 if icase==3:
     fname_out='wrfJune11_2014.Fields_G4ICE_18:24:00.nc'
+if icase==4:
+    fname_out='wrfJune12_2014.Fields_G4ICE_18:00:00.nc'
+if icase==5:
+    fname_out='wrfMay23_2014.Fields_G4ICE_21:36:00.nc'
 d.to_netcdf(fname_out)
 stop
 from numpy import *

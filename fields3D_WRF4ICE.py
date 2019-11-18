@@ -1,6 +1,6 @@
 from getNw import *
 from numpy import *
-def radarFields_3d(nx1,nx2,ny1,ny2,qs,qg,qh,qr,qc,qv,T,prs,ncs,ncg,nch,ncr,rho,wm,z,dm_z,vt_R,vt_S,pyHB2,nz,freqs):
+def radarFields_3d(nx1,nx2,ny1,ny2,qs,qg,qh,qr,qc,qv,T,prs,ncs,ncg,nch,ncr,rho,wm,z,dm_z,vt_R,vt_S,pyHB2,nz,freqs,dnri,dnsi,dngi,dnhi):
     nfreq=8
     z3d=zeros((nx2-nx1,ny2-ny1,nz,3),float)
     z3dm=zeros((nx2-nx1,ny2-ny1,nz,3),float)
@@ -52,9 +52,9 @@ def radarFields_3d(nx1,nx2,ny1,ny2,qs,qg,qh,qr,qc,qv,T,prs,ncs,ncg,nch,ncr,rho,w
                     if(t2c<-20):
                         t2c=-20
                     #fract=1.
-                    nws=0.08*exp(-0.12*t2c)
-                    nwg=0.08*exp(-0.12*t2c)
-                    nwh=0.08#*exp(-0.12*t2c)
+                    nws=0.08*exp(-0.12*t2c)*10**(-dnsi[k,j,i])
+                    nwg=0.08*exp(-0.12*t2c)*10**(-dngi[k,j,i])
+                    nwh=0.08*10**(-dnhi[k,j,i])#*exp(-0.12*t2c)
                     dns[i-nx1,j-ny1,k]=log10(nws/0.08)
                     dng[i-nx1,j-ny1,k]=log10(nwg/0.08)
                     iwc1=fract*(qs[k,j,i])*rho[k,j,i]*1e3
@@ -140,6 +140,7 @@ def radarFields_3d(nx1,nx2,ny1,ny2,qs,qg,qh,qr,qc,qv,T,prs,ncs,ncg,nch,ncr,rho,w
                         nwr=0.04#*exp((10-t2c)/6.)
                     else:
                         nwr=0.04
+                    nwr=nwr*10**dnri[k,j,i]
                     dnr[i-nx1,j-ny1,k]=log10(nwr/0.08)
                     
                     kextR,salbR,asymR,dpiaKu_R,dpiaKa_R,zKu_R,zKa_R,zWR, dmR = pyHB2.getrainp2(log10(nwr/0.08),(pwc+dpwc),nfreq)

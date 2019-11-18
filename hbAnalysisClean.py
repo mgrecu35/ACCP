@@ -2,15 +2,19 @@ import pickle
 from numpy import *
 [z1dku_obs,z1dka_obs,z1dku_eff,z1dka_eff,z1dkuHR_obs,z1dkuHR_eff,\
  z1dkaHR_obs,z1dkaHR_eff,qrL,piaLKu,piaLKa,zsfcL,kext3dKu,kext3dKa,\
- z1dka_ms_obs,windL]=pickle.load(open('zProfsq0125_18:24.pklz','rb'))
+ z1dka_ms_obs,windL,qnubf]=pickle.load(open('zProfsq0125_11June2014_17:48.pklz','rb'))
 [z1dku_obsv,z1dka_obsv,z1dku_effv,z1dka_effv,z1dkuHR_obsv,z1dkuHR_effv,\
  z1dkaHR_obsv,z1dkaHR_effv,qrLv,piaLKuv,piaLKav,zsfcLv,kext3dKuv,kext3dKav,\
- z1dka_ms_obsv,windLv]=pickle.load(open('zProfsq0125_19:00.pklz','rb'))
+ z1dka_ms_obsv,windLv,qnubfv]=pickle.load(open('zProfsq0125_11June2014_19:00.pklz','rb'))
 hg=arange(120)*0.125+1
 [z1dku_obsv2,z1dka_obsv2,z1dku_effv2,z1dka_effv2,z1dkuHR_obsv2,z1dkuHR_effv2,\
  z1dkaHR_obsv2,z1dkaHR_effv2,qrLv2,piaLKuv2,piaLKav2,zsfcLv2,kext3dKuv2,\
- kext3dKav2,z1dka_ms_obsv2,windLv2]=pickle.load(open('zProfsq0125_17:48.pklz','rb'))
-
+ kext3dKav2,z1dka_ms_obsv2,windLv2,qnubfv2]=pickle.load(open('zProfsq0125_12June2014_18:00.pklz','rb'))
+[z1dku_obsv2,z1dka_obsv2,z1dku_effv2,z1dka_effv2,z1dkuHR_obsv2,z1dkuHR_effv2,\
+ z1dkaHR_obsv2,z1dkaHR_effv2,qrLv2,piaLKuv2,piaLKav2,zsfcLv2,kext3dKuv2,\
+ kext3dKav2,z1dka_ms_obsv2,windLv2,qnubfv2]=pickle.load(open('zProfsq0125_23May2014_21:36.pklz','rb'))
+#stop
+#stop
 windL=array(windL)
 windLv=array(windLv)
 windLv2=array(windLv2)
@@ -23,26 +27,30 @@ n_neighbors=30
 X=[[z1[2],pia+random.randn()*3,z1[30],z1[20],z1[50],z1[60],0.001*sum(10**(0.1*z1[2:30])),0.001*sum(10**(0.1*z1[30:60]))] for z1,pia in zip(z1dka_ms_obs,piaLKa)]
 X=[]
 nlev=2.0
-for z1,pia,wind in zip(z1dka_ms_obs,piaLKa,windL):
+for z1,pia,wind,qnubf1 in zip(z1dka_ms_obs,piaLKa,windL,qnubf):
     x1=[z1[2],pia+random.randn()*3,z1[30],z1[20],z1[50],z1[60],0.001*sum(10**(0.1*z1[2:30])),0.001*sum(10**(0.1*z1[30:60]))]
     x1.extend(wind[0,30:50][::2]+nlev*random.randn(10))
+    #x1.extend(qnubf1[0,:,:].flatten())
     X.append(x1)
     
-for z1,pia,wind in zip(z1dka_ms_obsv,piaLKav,windLv):
+for z1,pia,wind,qnubf1 in zip(z1dka_ms_obsv,piaLKav,windLv,qnubfv):
     x1=[z1[2],pia+random.randn()*3,z1[30],z1[20],z1[50],z1[60],0.001*sum(10**(0.1*z1[2:30])),0.001*sum(10**(0.1*z1[30:60]))]
     x1.extend(wind[0,30:50][::2]+nlev*random.randn(10))
+    #x1.extend(qnubf1[0,:,:].flatten())
     X.append(x1)
 
 Y=[]
-for z1,wind,zs in zip(qrL,windL,zsfcL):
+for z1,wind,zs,qnubf1 in zip(qrL,windL,zsfcL,qnubf):
     x=list(z1)
     x.append(zs[-1])
     x.extend(wind[1,30:50][::2])
+    x.extend(qnubf1[0,1:5,1:5].flatten())
     Y.append(x)
-for z1,wind,zs in zip(qrLv,windLv,zsfcLv):
+for z1,wind,zs,qnubf1 in zip(qrLv,windLv,zsfcLv,qnubfv):
     x=list(z1)
     x.append(zs[-1])
     x.extend(wind[1,30:50][::2])
+    x.extend(qnubf1[0,1:5,1:5].flatten())
     Y.append(x)
 
 
@@ -56,10 +64,11 @@ for z1,pia,wind in zip(z1dka_ms_obsv2,piaLKav2,windLv2):
 
 Yv=[]
 
-for z1,wind,zs in zip(qrLv2,windLv2,zsfcLv2):
+for z1,wind,zs,qnubf1 in zip(qrLv2,windLv2,zsfcLv2,qnubfv2):
     x=list(z1)
     x.append(zs[-1])
     x.extend(wind[1,30:50][::2])
+    x.extend(qnubf1[0,1:5,1:5].flatten())
     Yv.append(x)
 
     
@@ -79,8 +88,8 @@ b=nonzero(r>0.58)
 
 Xv[:,:8][Xv[:,0:8]<0]=0
 X[:,0:8][X[:,0:8]<0]=0
-pickle.dump([X,Y,Xv,Yv],open('deepL_Data.pklz','wb'))
-stop
+pickle.dump([X,Y,Xv,Yv],open('deepL_Data_June11vMay23.pklz','wb'))
+
 xstd=X.std(axis=0)
 xm=X.mean(axis=0)
 for i in range(8):
@@ -93,7 +102,7 @@ knn.fit(X[a[0],:], Y[a])
 y=knn.predict(X[b[0],:])
 yv=knn.predict(Xv[:,:])
 
-stop
+
 nc=50
 zL=[]
 qL=[]
